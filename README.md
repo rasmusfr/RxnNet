@@ -65,9 +65,9 @@ print(pd.DataFrame(results)[:50].to_markdown())
 |----------------------------------------|----------------------------------------------------|
 | [Intro](examples/intro-mp-23193.ipynb) | Introduction to reaction generation and prediction |
 ## Datasets
-Datasets and results related to RxnNet can be found [here](https://data.dtu.dk).
+Datasets and results related to RxnNet can be found [here](https://doi.org/10.11583/DTU.25897420).
 ## License
-This repository is licensed under [MIT license](LICENSE)
+This repository is licensed under the [MIT license](LICENSE)
 ## Citing RxnNet
 ```bib
 This repository was created by Rasmus Fromsejer (Technical University of Denmark) to supplement the research paper "Accurate Formation Enthalpies of Solids Using Reaction Networks" by Rasmus Fromsejer, Bjørn Maribo-Mogensen, Georgios Kontogeorgis and Xiaodong Liang (submitted).
