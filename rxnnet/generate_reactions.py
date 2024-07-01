@@ -234,10 +234,11 @@ class GenerateRN:
                         vals = (rxn_bal_out, stoichiometry_at, ids, rxn_bal_out.as_dict())
                         data.append(dict(zip(headers, vals)))
         rn = pd.DataFrame(data)
-        if self.similarity_distance:
-            rn['d_rxn'] = self.rn_similarity_distance(rn)
-        if self.chemistry_balance:
-            rn['reaction_chemistry'], rn['balanced_chemistry'] = self.rn_balanced_chemistry(rn)
+        if not rn.empty:
+            if self.similarity_distance:
+                rn['d_rxn'] = self.rn_similarity_distance(rn)
+            if self.chemistry_balance:
+                rn['reaction_chemistry'], rn['balanced_chemistry'] = self.rn_balanced_chemistry(rn)
         rn = rn.set_index(np.arange(1, len(rn.index) + 1, 1))
         rn.index.names = ['reaction number']
         if save:
