@@ -11,7 +11,7 @@ height="70">
 
 </h4>
 
-RxnNet is reaction network based python package for property prediction in solids.
+RxnNet is a reaction network based python package for property prediction in solids.
 
 ## Installation
 Install from source:
@@ -38,7 +38,7 @@ rn_data = reaction_network_gen.balanced_reactions(save=True)
 
 print(rn_data[:50].to_markdown())
 ```
-### Predictions from reaction network
+### Predictions from the reaction network
 From the generated reaction network we can obtain a prediction for the formation enthalpy.
 
 ```python
@@ -70,7 +70,7 @@ Datasets and results related to RxnNet can be found [here](https://doi.org/10.11
 This repository is licensed under the [MIT license](LICENSE)
 ## Citing RxnNet
 ```bib
-This repository was created by Rasmus Fromsejer (Technical University of Denmark) to supplement the research paper "Accurate Formation Enthalpies of Solids Using Reaction Networks" by Rasmus Fromsejer, Bjørn Maribo-Mogensen, Georgios Kontogeorgis and Xiaodong Liang (submitted).
+This repository was created by Rasmus Fromsejer (Technical University of Denmark) to supplement the research paper "Accurate Formation Enthalpies of Solids Using Reaction Networks" in npj computational materials by Rasmus Fromsejer, Bjørn Maribo-Mogensen, Georgios Kontogeorgis and Xiaodong Liang (accepted in principle).
 ```
 ## Acknowledgement
 The author wishes to thank the European Research Council (ERC) under the European Union’s Horizon 2020 research and innovation program (Grant Agreement no. 832460), ERC Advanced Grant project “New Paradigm in Electrolyte Thermodynamics” and the Department of Chemical Engineering at the Technical University of Denmark for funding this research.

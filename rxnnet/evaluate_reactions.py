@@ -257,7 +257,7 @@ class EvaluateRN:
             nat = db.loc[target_id, 'num_atoms']
         self.rn_out = df_out
         vals = target_id, formula, nat, med, mean, sd_w, mad_w, netsize, filter_type, preferred_method, fallback_method
-        headers = ['mpid', 'formula', 'num_atoms', 'Prediction(RN)[median]', 'Prediction(RN)[mean]', 'MAE', 'SD',
+        headers = ['mpid', 'formula', 'num_atoms', 'Prediction(RN)[median]', 'Prediction(RN)[mean]', 'MAD', 'SD',
                    'n_reactions', 'mode', 'preferred_method', 'fallback_method']
         data.append(dict(zip(headers, vals)))
         if save:
