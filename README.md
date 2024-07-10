@@ -71,6 +71,8 @@ This repository is licensed under the [MIT license](LICENSE)
 ## Citing RxnNet
 ```bib
 This repository was created by Rasmus Fromsejer (Technical University of Denmark) to supplement the research paper "Accurate Formation Enthalpies of Solids Using Reaction Networks" in npj computational materials by Rasmus Fromsejer, Bjørn Maribo-Mogensen, Georgios Kontogeorgis and Xiaodong Liang (accepted in principle).
+
+Please cite this software as: Fromsejer, Rasmus (2024). RxnNet: Technical University of Denmark. Software. https://doi.org/10.11583/DTU.25898161
 ```
 ## Acknowledgement
 The author wishes to thank the European Research Council (ERC) under the European Union’s Horizon 2020 research and innovation program (Grant Agreement no. 832460), ERC Advanced Grant project “New Paradigm in Electrolyte Thermodynamics” and the Department of Chemical Engineering at the Technical University of Denmark for funding this research.
