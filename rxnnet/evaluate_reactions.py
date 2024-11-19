@@ -44,7 +44,7 @@ class EvaluateRN:
 
     def __init__(self, target_id: str, preferred_method: str, reference_method: str, rn: str,
                  db=r'..\rxnnet\data\database-20.03.24\datasets\main.pkl.gz', mode='ssw+cf', fallback_method=None,
-                 filter_cutoff=10, temperature=None) -> None:
+                 filter_cutoff=10, temperature=None, weight_stoic=False) -> None:
         """
             :param target_id: target compound identifier (str)
             :param preferred_method: alias of preferred calculation method (str)
@@ -54,7 +54,8 @@ class EvaluateRN:
             :param mode: reaction weighing and selection mode to be used to attempt to improve error-cancellation [choose from: 'plain', 'ssw', 'cf' and 'ssw+cf' (default)] (str)
             :param fallback_method: alias of calculation method to be used in case a reaction cannot be composed using data purely from the preferred method (str)
             :param filter_cutoff: minimum number of reactions to allow for prediction if mode is not 'plain' (int)
-            :param temperature: if input data is provided as dictionary of "temperature,value"-format a temperature may be specified.
+            :param temperature: if input data is provided as dictionary of "temperature,value"-format a temperature may be specified. (dict)
+            :param weight_stoic: enable a weighing mechanism which introduces a crude accounting of the random error in the calculated data (bool)
         """
         self.target_id = target_id
         self.preferred_method = preferred_method
@@ -68,6 +69,7 @@ class EvaluateRN:
         self.filter_cutoff = filter_cutoff
         self.temperature = temperature
         self.rn_out = None
+        self.weight_stoic = weight_stoic
 
     def get_prediction(self, reaction_ids: list[list, list], stoichiometry: list[list, list]):
 
@@ -100,26 +102,25 @@ class EvaluateRN:
                 :param compound_id: compound identifier
                 :return: Calculated and experimental value for specific compound (tuple).
                 """
+                calc = db.loc[compound_id, select_method]
+                exp = db.loc[compound_id, reference_method]
                 if temperature:
-                    try:
-                        calc = db.loc[compound_id, select_method][temperature]
-                        exp = db.loc[compound_id, reference_method][temperature]
-                    except (TypeError, KeyError):
-                        calc, exp = np.nan, np.nan
-                else:
-                    calc = db.loc[compound_id, select_method]
-                    exp = db.loc[compound_id, reference_method]
+                    if calc == calc:
+                        calc = calc[temperature]
+                    if exp == exp:
+                        exp = exp[temperature]
                 return calc, exp
 
             e_rxn_calc, e_rxn_ref, v0 = 0, 0, 1
             for side in reaction_ids:
                 for i, c_id in enumerate(reaction_ids[side]):
+                    is_target_compound = c_id == target_id
                     e_calc, e_ref = get_values(c_id)
-                    if e_calc is None or e_ref is None:
+                    if e_calc is None or (e_ref is None and not is_target_compound):
                         return np.nan, np.nan
                     v = stoichiometry[side][i]
                     e_rxn_calc += e_calc * v
-                    if c_id == target_id:
+                    if is_target_compound:
                         v0 = abs(v)
                     else:
                         e_rxn_ref += e_ref * v
@@ -144,6 +145,7 @@ class EvaluateRN:
         """
         db = self.db
         rn = self.rn
+        weight_stoic = self.weight_stoic
 
         if len(rn.index) == 0:
             return rn
@@ -152,6 +154,19 @@ class EvaluateRN:
         rn = rn[[set(c_ids).issubset(set(db.index.to_list()) - set(exclude_id)) for c_ids in id_flattened]]
         rn.loc[:, ['value', 'method']] = [self.get_prediction(x, rn['stoichiometry (atoms)'].iloc[i]) for i, x in
                                           enumerate(rn['reaction_mpids'])]
+        if weight_stoic:
+            stoic_weights = []
+            for brxn in rn['BalancedReaction']:
+                err, v0 = 0, 1
+                for i, r in enumerate(brxn['reactants'].values()):
+                    err += r * r
+                    if i == 0:
+                        v0 = r
+                for p in brxn['products'].values():
+                    err += p * p
+                stoic_weights.append(1 / (np.sqrt(err) / v0))
+            stoic_weights = np.array(stoic_weights)
+            rn['weight'] *= stoic_weights / np.sum(stoic_weights)
         if len(rn.index) == 0:
             return rn
         rn.dropna(inplace=True)
@@ -198,7 +213,7 @@ class EvaluateRN:
         else:
             return None, None
 
-    def rn_evaluate(self, save=False, save_path='processed_reactions', exclude_id=()):
+    def rn_evaluate(self, save=False, verbose=False, save_path='processed_reactions', exclude_id=()):
         """
         Computes the final RN prediction along with uncertainty information,
         details about the reaction distribution/network and general information about the compound.
@@ -250,16 +265,19 @@ class EvaluateRN:
             w, v = df_out['weight'], df_out['value']
             sum_w = np.sum(w)
             avg_w = np.sum(w * v) / sum_w
-            sd_w = np.sqrt(np.sum(w * (v - avg_w) ** 2) / (sum_w - 1))
+            sd_w = np.sqrt(np.sum(w * (v - avg_w) ** 2) / sum_w)
             mad_w = weighted_median(abs(v - med), w)
             netsize = len(df_out.index)
             formula = db.loc[target_id, 'formula']
             nat = db.loc[target_id, 'num_atoms']
+            w *= 100 / np.sum(w)  # normalize weights to 100 (percent)
         self.rn_out = df_out
         vals = target_id, formula, nat, med, mean, sd_w, mad_w, netsize, filter_type, preferred_method, fallback_method
         headers = ['mpid', 'formula', 'num_atoms', 'Prediction(RN)[median]', 'Prediction(RN)[mean]', 'MAD', 'SD',
                    'n_reactions', 'mode', 'preferred_method', 'fallback_method']
         data.append(dict(zip(headers, vals)))
+        if verbose:
+            print(df_out.to_markdown())
         if save:
             if not os.path.exists(save_path):
                 os.makedirs(save_path)
