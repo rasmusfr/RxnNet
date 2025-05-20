@@ -3,4 +3,4 @@ numpy~=1.26.4
 wquantiles~=0.6
 chempy~=0.8.3
 pymatgen~=2024.3.1
-setuptools~=68.2.0
+setuptools~=78.1.1
